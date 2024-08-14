@@ -91,6 +91,7 @@ export class AppGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
         client.on('ack', () => {
           acknowledged = true;
+          console.error(`Clinet ${clientId} acknowledged.`);
           clearTimeout(ackTimeout);
           resolve(true);
         });

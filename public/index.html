@@ -1,0 +1,24 @@
+<html>
+
+<head>
+    <script src="https://cdn.socket.io/4.3.2/socket.io.min.js"
+        integrity="sha384-KAZ4DtjNhLChOB/hxXuKqhMLYvx3b5MlT55xPEiNmREKRzeEm+RVPlTnAn0ajQNs"
+        crossorigin="anonymous"></script>
+    <script>
+        const socket = io('http://localhost:3000?clientId=test-client-id');
+        socket.on('connect', function () {
+            console.log('Connected');
+        });
+        socket.on('shortenedUrl', function (data) {
+            document.getElementById('app').innerHTML += `URL - ${data.shortenedUrl} </br>`
+            console.log('shortenedUrl', data);
+            socket.emit('ack')
+        });
+
+
+    </script>
+</head>
+
+<body id="app"></body>
+
+</html>

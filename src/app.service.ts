@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import Cache, { FileSystemCache } from 'file-system-cache';
 import { MailService } from './utils/mail';
+import { ONE_YEAR_IN_SECONDS } from './utils/constants';
 
 @Injectable()
 export class AppService {
@@ -26,7 +27,9 @@ export class AppService {
 
   async shortenUrl(basePath: string, url: string): Promise<string> {
     const code = await this.generateShortCode();
-    this.cache.setSync(code, url);
+
+    this.cache.setSync(code, url, ONE_YEAR_IN_SECONDS);
+
     const shortendURL = `${basePath}/${code}`;
 
     this.sendMailNotification({
