@@ -4,8 +4,20 @@
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+This is a URL Shortener service built using [NestJS](https://nestjs.com/) (version 10). The service allows users to shorten URLs, retrieve the original URLs using shortened codes, and communicates with clients via WebSockets for URL shortening results.
 
+## Features
+
+- **POST /url**: Shorten a valid URL and receive the shortened URL via WebSocket.
+- **GET /:code**: Retrieve the original URL using the shortened code.
+- **WebSocket Communication**: The server sends the shortened URL to the client via WebSocket, ensuring delivery even in unstable network conditions with retry logic.
+
+## Technologies
+
+- **NestJS 10**
+- **WebSocket**: Implemented using `@nestjs/websockets` and `socket.io`
+- **Swagger**: API documentation
+  
 ## Installation
 
 ```bash
@@ -23,11 +35,33 @@ $ npm run start:dev
 
 # production mode
 $ npm run start:prod
-
 ```
+
+## WebSocket Communication
+Client Setup
+To communicate with the server using WebSocket, the client should connect to the WebSocket server at http://localhost:3000 with a clientId query parameter.
+
+Example:
+```
+const socket = io('http://localhost:3000', {
+  query: {
+    clientId: '12345'
+  }
+});
+
+socket.on('shortenedUrl', (data) => {
+  console.log('Received shortened URL:', data.shortenedUrl);
+  // Acknowledge the receipt
+  socket.emit('ack');
+});
+```
+
+## Retry Logic
+If the client is not connected or does not acknowledge receipt of the shortened URL, the server will retry sending the message up to 3 times, with a 5-second interval between retries.
+
 ## API Documentation
 ```bash
-The API documentation can be found at http://ocalhost:3000/documentation
+The API documentation can be found at http://localhost:3000/documentation
 
 ```
 
