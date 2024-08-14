@@ -1,0 +1,103 @@
+import {
+  WebSocketGateway,
+  WebSocketServer,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
+} from '@nestjs/websockets';
+import { Server, Socket } from 'socket.io';
+import { AppService } from './app.service';
+
+@WebSocketGateway()
+export class AppGateway implements OnGatewayConnection, OnGatewayDisconnect {
+  @WebSocketServer()
+  server: Server;
+
+  private clients: Map<string, Socket> = new Map();
+
+  constructor(private readonly appService: AppService) {}
+
+  handleConnection(client: Socket) {
+    const clientId = client.handshake.query.clientId as string;
+
+    if (clientId) {
+      this.clients.set(clientId, client);
+      const message = this.appService.getMessage(clientId);
+
+      if (message) {
+        this.sendShortenedUrl(clientId, message);
+      }
+    }
+  }
+
+  handleDisconnect(client: Socket) {
+    const clientId = client.handshake.query.clientId as string;
+    if (clientId) {
+      this.clients.delete(clientId);
+    }
+  }
+
+  async sendShortenedUrl(clientId: string, shortenedUrl: string) {
+    try {
+      const eventName = 'shortenedUrl';
+      const data = { shortenedUrl };
+      const sent = await this.sendMessageWithRetries(clientId, eventName, data);
+
+      if (!sent) {
+        this.appService.storeMessage(clientId, shortenedUrl);
+      } else {
+        this.appService.removeMessage(clientId);
+      }
+    } catch (error) {
+      this.appService.storeMessage(clientId, shortenedUrl);
+      console.error('Failed to send shortened URL:', error);
+    }
+  }
+
+  async sendMessageWithRetries(
+    clientId: string,
+    eventName: string,
+    data: any,
+    retries: number = 3,
+    timeout: number = 5000,
+  ) {
+    const client = this.clients.get(clientId);
+    if (client) {
+      return new Promise<boolean>((resolve, reject) => {
+        let acknowledged = false;
+
+        client.emit(eventName, data);
+
+        const ackTimeout = setTimeout(() => {
+          if (!acknowledged && retries > 0) {
+            console.warn(
+              `No acknowledgment received from ${clientId}. Retrying...`,
+            );
+            this.sendMessageWithRetries(
+              clientId,
+              eventName,
+              data,
+              retries - 1,
+              timeout,
+            )
+              .then(resolve)
+              .catch(reject);
+          } else if (!acknowledged) {
+            console.error(
+              `Failed to get acknowledgment from ${clientId} after multiple retries.`,
+            );
+            reject(false);
+          }
+        }, timeout);
+
+        client.on('ack', () => {
+          acknowledged = true;
+          clearTimeout(ackTimeout);
+          resolve(true);
+        });
+      });
+    } else {
+      console.error(`Client ${clientId} not connected.`);
+      return false;
+    }
+  }
+}

@@ -1,24 +1,31 @@
 import { AppService } from './app.service';
+import { MailService } from './utils/mail';
 
 describe('AppService', () => {
-  let urlService: AppService;
+  let appService: AppService;
+  let mailService: MailService;
 
   beforeEach(() => {
-    urlService = new AppService();
+    appService = new AppService();
   });
 
-  it('should generate a 10-character random code', () => {
-    const code = urlService.generateShortCode();
+  it('should generate a 10-character random code', async () => {
+    const code = await appService.generateShortCode();
     expect(code).toHaveLength(10);
     expect(/^[A-Za-z0-9]+$/.test(code)).toBeTruthy();
   });
 
-  it('should shorten a URL and store it', () => {
+  it('should shorten a URL and store it', async () => {
     const baseUrl = 'http://localhost:3000';
     const originalUrl = 'test.com';
-    const shortenedUrl = urlService.shortenUrl(baseUrl, originalUrl);
+    jest
+      .spyOn(appService, 'sendMailNotification')
+      .mockImplementation(async () => {});
+
+    const shortenedUrl = await appService.shortenUrl(baseUrl, originalUrl);
 
     const code = shortenedUrl.split('/').pop();
-    expect(urlService.getOriginalUrl(code)).toEqual(originalUrl);
+
+    expect(appService.getOriginalUrl(code)).toEqual(originalUrl);
   });
 });
