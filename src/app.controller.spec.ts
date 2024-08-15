@@ -95,7 +95,7 @@ describe('AppController', () => {
 
       expect(appService.getOriginalUrl).toHaveBeenCalledWith(code);
       expect(res.status).toHaveBeenCalledWith(404);
-      expect(res.json).toHaveBeenCalledWith({ error: 'URL not found' });
+      expect(res.json).toHaveBeenCalledWith({ message: 'URL not found' });
     });
   });
 });

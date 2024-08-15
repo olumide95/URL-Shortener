@@ -46,19 +46,38 @@ export class AppService {
   }
 
   getOriginalUrl(code: string): string | null {
-    const originalUrl = this.cache.getSync(code);
-    return originalUrl || null;
+    const originalUrl = this.cache.getSync(code, null);
+    return originalUrl;
   }
 
-  async storeMessage(clientId: string, shortenedUrl: string) {
-    this.cache.setSync(clientId, shortenedUrl);
+  storeMessage(clientId: string, message: string): void {
+    const messages: string[] | null = this.cache.getSync(clientId, null);
+    if (messages) {
+      const messageExist = messages.includes(message);
+      if (messageExist) {
+        return;
+      }
+
+      messages.push(message);
+      this.cache.setSync(clientId, messages);
+      return;
+    }
+
+    this.cache.setSync(clientId, [message]);
   }
 
-  getMessage(clientId: string): string | null {
-    return this.cache.getSync(clientId) || null;
+  getMessages(clientId: string): string[] | null {
+    return this.cache.getSync(clientId, null);
   }
 
-  async removeMessage(clientId: string) {
+  async removeMessage(clientId: string, message: string) {
+    let messages: string[] | null = this.cache.getSync(clientId, null);
+    if (messages?.length > 1) {
+      messages = messages.filter((item) => item !== message);
+      this.cache.setSync(clientId, messages);
+      return;
+    }
+
     await this.cache.remove(clientId);
   }
 }

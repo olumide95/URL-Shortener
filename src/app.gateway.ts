@@ -16,15 +16,17 @@ export class AppGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   constructor(private readonly appService: AppService) {}
 
-  handleConnection(client: Socket) {
+  async handleConnection(client: Socket) {
     const clientId = client.handshake.query.clientId as string;
 
     if (clientId) {
       this.clients.set(clientId, client);
-      const message = this.appService.getMessage(clientId);
+      const messages = this.appService.getMessages(clientId);
 
-      if (message) {
-        this.sendShortenedUrl(clientId, message);
+      if (messages) {
+        messages.map(async (message) => {
+          await this.sendShortenedUrl(clientId, message);
+        });
       }
     }
   }
@@ -45,7 +47,7 @@ export class AppGateway implements OnGatewayConnection, OnGatewayDisconnect {
       if (!sent) {
         this.appService.storeMessage(clientId, shortenedUrl);
       } else {
-        this.appService.removeMessage(clientId);
+        this.appService.removeMessage(clientId, shortenedUrl);
       }
     } catch (error) {
       this.appService.storeMessage(clientId, shortenedUrl);
@@ -89,7 +91,7 @@ export class AppGateway implements OnGatewayConnection, OnGatewayDisconnect {
           }
         }, timeout);
 
-        client.on('ack', () => {
+        client.once('ack', () => {
           acknowledged = true;
           console.error(`Clinet ${clientId} acknowledged.`);
           clearTimeout(ackTimeout);
