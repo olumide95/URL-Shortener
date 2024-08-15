@@ -6,11 +6,9 @@ import { ONE_YEAR_IN_SECONDS } from './utils/constants';
 @Injectable()
 export class AppService {
   private cache: FileSystemCache;
-  private mailService: MailService;
 
   constructor() {
     this.cache = Cache();
-    this.mailService = new MailService();
   }
 
   async generateShortCode(length: number = 10): Promise<string> {
@@ -32,17 +30,13 @@ export class AppService {
 
     const shortendURL = `${basePath}/${code}`;
 
-    this.sendMailNotification({
-      to: 'user@email.com',
+    MailService.send({
+      to: 'user@zemail.com',
       subject: 'URL Shortended Successfully',
       message: shortendURL,
     });
 
     return shortendURL;
-  }
-
-  async sendMailNotification({ to, subject, message }): Promise<void> {
-    this.mailService.send({ to, subject, message });
   }
 
   getOriginalUrl(code: string): string | null {

@@ -1,4 +1,5 @@
 import { AppService } from './app.service';
+import { MailService } from './utils/mail';
 
 describe('AppService', () => {
   let appService: AppService;
@@ -16,9 +17,7 @@ describe('AppService', () => {
   it('should shorten a URL and store it', async () => {
     const baseUrl = 'http://localhost:3000';
     const originalUrl = 'test.com';
-    jest
-      .spyOn(appService, 'sendMailNotification')
-      .mockImplementation(async () => {});
+    jest.spyOn(MailService, 'send').mockImplementation(async () => true);
 
     const shortenedUrl = await appService.shortenUrl(baseUrl, originalUrl);
 

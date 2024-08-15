@@ -7,9 +7,11 @@ interface IMail {
 }
 
 export class MailService {
-  async send({ to, subject, message }: IMail): Promise<boolean> {
+  private transporter: nodemailer.Transporter;
+
+  constructor() {
     try {
-      const transporter = nodemailer.createTransport({
+      this.transporter = nodemailer.createTransport({
         host: 'smtp.gmail.com',
         port: 587,
         auth: {
@@ -17,7 +19,13 @@ export class MailService {
           pass: process.env.GOOGLE_MAIL_APP_PASSWORD,
         },
       });
+    } catch (error) {
+      console.error('error intialising email service', error);
+    }
+  }
 
+  async sendMail({ to, subject, message }: IMail): Promise<boolean> {
+    try {
       const mailOptions = {
         from: process.env.GOOGLE_MAIL_APP_EMAIL,
         to,
@@ -25,11 +33,16 @@ export class MailService {
         html: message,
       };
 
-      await transporter.sendMail(mailOptions);
+      await this.transporter.sendMail(mailOptions);
       return true;
     } catch (error) {
       console.error('error sending email ', error);
       return false;
     }
+  }
+
+  static async send({ to, subject, message }: IMail): Promise<boolean> {
+    const instance = new MailService();
+    return instance.sendMail({ to, subject, message });
   }
 }
