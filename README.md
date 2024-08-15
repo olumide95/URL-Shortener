@@ -2,30 +2,22 @@
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
 </p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
-
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
-
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+This is a URL Shortener service built using [NestJS](https://nestjs.com/) (version 10). The service allows users to shorten URLs, retrieve the original URLs using shortened codes, and communicates with clients via WebSockets for URL shortening results.
 
+## Features
+
+- **POST /url**: Shorten a valid URL and receive the shortened URL via WebSocket.
+- **GET /:code**: Retrieve the original URL using the shortened code.
+- **WebSocket Communication**: The server sends the shortened URL to the client via WebSocket, ensuring delivery even in unstable network conditions with retry logic.
+
+## Technologies
+
+- **NestJS 10**
+- **WebSocket**: Implemented using `@nestjs/websockets` and `socket.io`
+- **Swagger**: API documentation
+  
 ## Installation
 
 ```bash
@@ -45,6 +37,34 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
+## WebSocket Communication
+Client Setup
+To communicate with the server using WebSocket, the client should connect to the WebSocket server at http://localhost:3000 with a clientId query parameter.
+
+Example:
+```
+const socket = io('http://localhost:3000', {
+  query: {
+    clientId: '12345'
+  }
+});
+
+socket.on('shortenedUrl', (data) => {
+  console.log('Received shortened URL:', data.shortenedUrl);
+  // Acknowledge the receipt
+  socket.emit('ack');
+});
+```
+
+## Retry Logic
+If the client is not connected or does not acknowledge receipt of the shortened URL, the server will retry sending the message up to 3 times, with a 5-second interval between retries.
+
+## API Documentation
+```bash
+The API documentation can be found at http://localhost:3000/documentation
+
+```
+
 ## Test
 
 ```bash
@@ -58,16 +78,4 @@ $ npm run test:e2e
 $ npm run test:cov
 ```
 
-## Support
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](LICENSE).
