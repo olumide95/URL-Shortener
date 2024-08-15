@@ -17,6 +17,8 @@ The API documentation can be found at http://localhost:3000/documentation
 - **POST /url**: Shorten a valid URL and receive the shortened URL via WebSocket.
 - **GET /:code**: Retrieve the original URL using the shortened code.
 - **WebSocket Communication**: The server sends the shortened URL to the client via WebSocket, ensuring delivery even in unstable network conditions with retry logic.
+- **GET /documentation**: Documentation UI
+- **GET /index.html**: Client UI
 
 ## Technologies
 
