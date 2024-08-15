@@ -1,9 +1,7 @@
 import { AppService } from './app.service';
-import { MailService } from './utils/mail';
 
 describe('AppService', () => {
   let appService: AppService;
-  let mailService: MailService;
 
   beforeEach(() => {
     appService = new AppService();
